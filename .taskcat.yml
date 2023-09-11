@@ -12,7 +12,7 @@ project:
   - eu-west-3
 tests:
   default:
-    template: templates/sagemaker-for-tableau-main.template
+    template: templates/sagemaker-for-tableau-main.template.yaml
     s3_regional_buckets: true
     parameters:
       AvailabilityZones: $[taskcat_getaz_2]
