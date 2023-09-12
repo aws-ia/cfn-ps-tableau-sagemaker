@@ -1,35 +1,35 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Functions and API for connecting Tableau to SageMaker (qs-1rhg228ne). 
+Description: Functions and API for connecting Tableau to SageMaker (qs-1rhg228ne).
 Metadata:
   QuickStartDocumentation:
     EntrypointName: Launch into existing VPC
     Order: 2
   AWS::CloudFormation::Interface:
     ParameterGroups:
-    - Label: 
-        default: Network configuration
-      Parameters:
-      - LaunchToVpc
-      - VpcId
-      - SubnetIds
-    - Label:
-        default: Domain configuration
-      Parameters:
-      - DomainName
-      - HostedZoneId
-      - CertificateARN
-    - Label:
-        default: AWS Quick Start configuration
-      Parameters:
-      - QSS3BucketName
-      - QSS3KeyPrefix
+      - Label:
+          default: Network configuration
+        Parameters:
+          - LaunchToVpc
+          - VpcId
+          - SubnetIds
+      - Label:
+          default: Domain configuration
+        Parameters:
+          - DomainName
+          - HostedZoneId
+          - CertificateARN
+      - Label:
+          default: AWS Quick Start configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
     ParameterLabels:
-      LaunchToVpc: 
+      LaunchToVpc:
         default: Launch into VPC
       VpcId:
         default: VPC ID
-      SubnetIds: 
+      SubnetIds:
         default: Subnet IDs
       QSS3KeyPrefix:
         default: Quick Start S3 key prefix
@@ -41,8 +41,10 @@ Metadata:
         default: Certificate ARN
       HostedZoneId:
         default: Hosted zone ID
-  cfn-lint: { config: { ignore_checks: [E9007] } }
-
+  cfn-lint:
+    config:
+      ignore_checks:
+        - E9007
 Globals:
   Function:
     Runtime: python3.7
@@ -51,14 +53,14 @@ Parameters:
   LaunchToVpc:
     Type: String
     Description: Choose *Yes* to deploy into a VPC. Choose *No* to deploy without a VPC.
-    AllowedValues: 
+    AllowedValues:
       - 'Yes'
       - 'No'
-  VpcId: 
-    Type: 'AWS::EC2::VPC::Id'
+  VpcId:
+    Type: AWS::EC2::VPC::Id
     Description: ID of the VPC to deploy into.
   SubnetIds:
-    Type: 'AWS::EC2::Subnet::Id'
+    Type: AWS::EC2::Subnet::Id
     Description: ID of the subnet to deploy into.
   DomainName:
     Type: String
@@ -67,59 +69,52 @@ Parameters:
     Type: String
     Description: ARN of domain certificate.
   HostedZoneId:
-    Type: 'AWS::Route53::HostedZone::Id'
+    Type: AWS::Route53::HostedZone::Id
     Description: Route 53 hosted zone ID for the domain.
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: The Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a 
-      hyphen (-).
+    ConstraintDescription: The Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
     Default: aws-ia-us-east-1
-    Description: Name of the S3 bucket for your copy of the Quick Start assets. 
-      Keep the default name unless you are customizing the template. 
-      Changing the name updates code references to point to a new Quick 
-      Start location. This name can include numbers, lowercase letters, 
-      uppercase letters, and hyphens, but do not start or end with a hyphen (-). 
-      See https://aws-quickstart.github.io/option1.html.
+    Description: Name of the S3 bucket for your copy of the Quick Start assets. Keep the default name unless you are customizing the template. Changing the name updates code references to point to a new
+      Quick Start location. This name can include numbers, lowercase letters, uppercase letters, and hyphens, but do not start or end with a hyphen (-). See https://aws-quickstart.github.io/option1.html.
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^([0-9a-zA-Z-.]+/)*$
-    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slashes (/).
+    ConstraintDescription: The Quick Start S3 key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/).
     Default: cfn-ps-tableau-sagemaker/
-    Description: S3 key prefix that is used to simulate a directory for your copy of the 
-      Quick Start assets. Keep the default prefix unless you are customizing 
-      the template. Changing this prefix updates code references to point to 
-      a new Quick Start location. This prefix can include numbers, lowercase 
-      letters, uppercase letters, hyphens (-), and forward slashes (/). 
-      See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html 
+    Description: S3 key prefix that is used to simulate a directory for your copy of the Quick Start assets. Keep the default prefix unless you are customizing the template. Changing this prefix updates
+      code references to point to a new Quick Start location. This prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slashes (/). See https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
       and https://aws-quickstart.github.io/option1.html.
     Type: String
-
 Conditions:
-  LaunchToVpc: !Equals
-    - !Ref LaunchToVpc
-    - 'Yes'
-  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-ia-us-east-1']
-
+  LaunchToVpc:
+    Fn::Equals:
+      - Ref: LaunchToVpc
+      - 'Yes'
+  UsingDefaultBucket:
+    Fn::Equals:
+      - Ref: QSS3BucketName
+      - aws-ia-us-east-1
 Resources:
   VPCEndpoint:
     Condition: LaunchToVpc
     Type: AWS::EC2::VPCEndpoint
     Properties:
-      VpcId: !Ref VpcId
+      VpcId:
+        Ref: VpcId
       VpcEndpointType: Interface
-      SubnetIds: 
-        - !Ref SubnetIds
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.runtime'
+      SubnetIds:
+        - Ref: SubnetIds
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.sagemaker.runtime
       SecurityGroupIds:
-        - !Ref SolutionSG
-
+        - Ref: SolutionSG
   SolutionSG:
     Condition: LaunchToVpc
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VpcId
+      VpcId:
+        Ref: VpcId
       GroupDescription: SageMaker for Tableau Quick Start security group
       GroupName: SageMakerForTableau
       SecurityGroupEgress:
@@ -132,7 +127,6 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -141,58 +135,77 @@ Resources:
         AllowAdminCreateUserOnly: false
       UserPoolName: SageMakerTableauAPIUsers
       UsernameAttributes:
-      - email
+        - email
       AutoVerifiedAttributes:
-      - email
+        - email
       Policies:
         PasswordPolicy:
           MinimumLength: 8
           RequireNumbers: true
-          RequireSymbols: true          
+          RequireSymbols: true
   UserPoolTokenClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthFlows: 
+      AllowedOAuthFlows:
         - code
-      AllowedOAuthScopes: 
+      AllowedOAuthScopes:
         - aws.cognito.signin.user.admin
         - email
         - openid
         - phone
         - profile
-      CallbackURLs: 
-        - "https://github.com/aws-quickstart/quickstart-interworks-tableau-sagemaker-autopilot/blob/main/README.md"
-      UserPoolId: !Ref UserPool
+      CallbackURLs:
+        - https://github.com/aws-quickstart/quickstart-interworks-tableau-sagemaker-autopilot/blob/main/README.md
+      UserPoolId:
+        Ref: UserPool
       GenerateSecret: false
-      SupportedIdentityProviders: 
+      SupportedIdentityProviders:
         - COGNITO
       ExplicitAuthFlows:
-      - USER_PASSWORD_AUTH
+        - USER_PASSWORD_AUTH
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Select [2, !Split [/, !Ref AWS::StackId ]]
-      UserPoolId: !Ref UserPool
+      Domain:
+        Fn::Select:
+          - 2
+          - Fn::Split:
+              - /
+              - Ref: AWS::StackId
+      UserPoolId:
+        Ref: UserPool
   InfoFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri:
-        Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-        Key: !Sub "${QSS3KeyPrefix}scripts/Info/Info.zip"
+        Bucket:
+          Fn::If:
+            - UsingDefaultBucket
+            - Fn::Sub: ${QSS3BucketName}-${AWS::Region}
+            - Ref: QSS3BucketName
+        Key:
+          Fn::Sub: ${QSS3KeyPrefix}scripts/Info/Info.zip
       Handler: lambda_function.lambda_handler
       Events:
         InfoGetRequest:
           Type: Api
           Properties:
-            RestApiId: !Ref SageMakerApi
+            RestApiId:
+              Ref: SageMakerApi
             Path: /info
             Method: get
       VpcConfig:
-        SecurityGroupIds: 
-          - !If [LaunchToVpc, !Ref SolutionSG, !Ref "AWS::NoValue"]
+        SecurityGroupIds:
+          - Fn::If:
+              - LaunchToVpc
+              - Ref: SolutionSG
+              - Ref: AWS::NoValue
         SubnetIds:
-          - !If [LaunchToVpc, !Ref SubnetIds, !Ref "AWS::NoValue"]
+          - Fn::If:
+              - LaunchToVpc
+              - Ref: SubnetIds
+              - Ref: AWS::NoValue
   EvaluateFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -201,33 +214,45 @@ Resources:
           ignore_checks:
             - EIAMPolicyWildcardResource
           ignore_reasons:
-            EIAMPolicyWildcardResource: "Need to invoke all endpoints in account for Tableau integration to function properly"
+            EIAMPolicyWildcardResource: Need to invoke all endpoints in account for Tableau integration to function properly
     Properties:
       CodeUri:
-        Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-        Key: !Sub "${QSS3KeyPrefix}scripts/Evaluate/Evaluate.zip"
+        Bucket:
+          Fn::If:
+            - UsingDefaultBucket
+            - Fn::Sub: ${QSS3BucketName}-${AWS::Region}
+            - Ref: QSS3BucketName
+        Key:
+          Fn::Sub: ${QSS3KeyPrefix}scripts/Evaluate/Evaluate.zip
       Handler: lambda_function.lambda_handler
       Policies:
-      - Statement:
-        - Sid: SageMakerInvokeEndpointPolicy
-          Effect: Allow
-          Action:
-          - sagemaker:InvokeEndpoint
-          Resource: '*'
+        - Statement:
+            - Sid: SageMakerInvokeEndpointPolicy
+              Effect: Allow
+              Action:
+                - sagemaker:InvokeEndpoint
+              Resource: '*'
       Events:
         EvaluatePostRequest:
           Type: Api
           Properties:
             Auth:
               Authorizer: LambdaRequestAuthorizer
-            RestApiId: !Ref SageMakerApi
+            RestApiId:
+              Ref: SageMakerApi
             Path: /evaluate
             Method: post
       VpcConfig:
-        SecurityGroupIds: 
-          - !If [LaunchToVpc, !Ref SolutionSG, !Ref "AWS::NoValue"]
+        SecurityGroupIds:
+          - Fn::If:
+              - LaunchToVpc
+              - Ref: SolutionSG
+              - Ref: AWS::NoValue
         SubnetIds:
-          - !If [LaunchToVpc, !Ref SubnetIds, !Ref "AWS::NoValue"]
+          - Fn::If:
+              - LaunchToVpc
+              - Ref: SubnetIds
+              - Ref: AWS::NoValue
   SageMakerApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -244,99 +269,123 @@ Resources:
                 - Authorization
       StageName: prod
       DefinitionBody:
-        openapi: "3.0.1"
+        openapi: 3.0.1
         info:
-          title: "APISageMakerTableauConnector"
-          description: "REST API for SageMaker Tableau connector."
-          version: "2020-11-17T16:10:11Z"
+          title: APISageMakerTableauConnector
+          description: REST API for SageMaker Tableau connector.
+          version: '2020-11-17T16:10:11Z'
         paths:
           /info:
             get:
               responses:
                 '200':
-                  description: "200 response"
+                  description: 200 response
                   content:
                     application/json:
                       schema:
-                        $ref: "#/components/schemas/Empty"
+                        $ref: '#/components/schemas/Empty'
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${InfoFunction.Arn}/invocations"
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${InfoFunction.Arn}/invocations
                 responses:
                   default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws"
+                    statusCode: '200'
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                contentHandling: CONVERT_TO_TEXT
+                type: aws
           /evaluate:
             post:
               responses:
                 '200':
-                  description: "200 response"
+                  description: 200 response
                   content:
                     application/json:
                       schema:
-                        $ref: "#/components/schemas/Empty"
+                        $ref: '#/components/schemas/Empty'
               security:
-              - LambdaRequestAuthorizer: []
+                - LambdaRequestAuthorizer: []
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EvaluateFunction.Arn}/invocations"
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EvaluateFunction.Arn}/invocations
                 responses:
                   default:
-                    statusCode: "200"
-                passthroughBehavior: "when_no_match"
-                httpMethod: "POST"
-                contentHandling: "CONVERT_TO_TEXT"
-                type: "aws"
+                    statusCode: '200'
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                contentHandling: CONVERT_TO_TEXT
+                type: aws
         components:
           schemas:
             Empty:
-              title: "Empty Schema"
-              type: "object"
+              title: Empty Schema
+              type: object
           securitySchemes:
             LambdaRequestAuthorizer:
-              type: "apiKey"
-              name: "Authorization"
-              in: "header"
-              x-amazon-apigateway-authtype: "custom"
+              type: apiKey
+              name: Authorization
+              in: header
+              x-amazon-apigateway-authtype: custom
               x-amazon-apigateway-authorizer:
-                type: "request"
-                authorizerUri: 
-                  Fn::Sub: "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BasicAuthFunction.Arn}/invocations"
+                type: request
+                authorizerUri:
+                  Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BasicAuthFunction.Arn}/invocations
                 authorizerResultTtlInSeconds: 0
-                identitySource: "method.request.header.Authorization"
+                identitySource: method.request.header.Authorization
       Domain:
-       CertificateArn: !Ref CertificateARN
-       DomainName: !Ref DomainName
-       EndpointConfiguration: EDGE
-       Route53:
-        HostedZoneId: !Ref HostedZoneId
+        CertificateArn:
+          Ref: CertificateARN
+        DomainName:
+          Ref: DomainName
+        EndpointConfiguration: EDGE
+        Route53:
+          HostedZoneId:
+            Ref: HostedZoneId
       Variables:
-        InfoFunction: !Ref InfoFunction
-        EvaluateFunction: !Ref EvaluateFunction
-        DomainName: !Ref DomainName
+        InfoFunction:
+          Ref: InfoFunction
+        EvaluateFunction:
+          Ref: EvaluateFunction
+        DomainName:
+          Ref: DomainName
   BasicAuthFunction:
-      Type: AWS::Serverless::Function
-      Properties:
-        CodeUri:
-          Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-          Key: !Sub "${QSS3KeyPrefix}scripts/Authorizer/Authorizer.zip"
-        Handler: lambda_function.lambda_handler
-        Tracing: Active
-        Environment:
-            Variables:
-                CLIENT_ID: !Ref UserPoolTokenClient
-                USER_POOL_ID: !Ref UserPool
-                LOG_LEVEL: INFO
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri:
+        Bucket:
+          Fn::If:
+            - UsingDefaultBucket
+            - Fn::Sub: ${QSS3BucketName}-${AWS::Region}
+            - Ref: QSS3BucketName
+        Key:
+          Fn::Sub: ${QSS3KeyPrefix}scripts/Authorizer/Authorizer.zip
+      Handler: lambda_function.lambda_handler
+      Tracing: Active
+      Environment:
+        Variables:
+          CLIENT_ID:
+            Ref: UserPoolTokenClient
+          USER_POOL_ID:
+            Ref: UserPool
+          LOG_LEVEL: INFO
 Outputs:
   UserPoolDomain:
     Description: URL to sign up and sign in users.
-    Value: !Join ['',[https://, !Ref UserPoolDomain, .auth., !Ref AWS::Region, ".amazoncognito.com/login?response_type=code&client_id=", !Ref UserPoolTokenClient, "&redirect_uri=" , https://github.com/aws-quickstart/quickstart-interworks-tableau-sagemaker-autopilot/blob/main/README.md ]]
+    Value:
+      Fn::Join:
+        - ''
+        - - https://
+          - Ref: UserPoolDomain
+          - .auth.
+          - Ref: AWS::Region
+          - .amazoncognito.com/login?response_type=code&client_id=
+          - Ref: UserPoolTokenClient
+          - '&redirect_uri='
+          - https://github.com/aws-quickstart/quickstart-interworks-tableau-sagemaker-autopilot/blob/main/README.md
   SageMakerTableauApi:
     Description: URL for your SageMaker Tableau connector.
-    Value: !Ref DomainName
+    Value:
+      Ref: DomainName
   Postdeployment:
     Description: See the deployment guide for post-deployment steps.
     Value: https://aws.amazon.com/quickstart/?quickstart-all.sort-by=item.additionalFields.sortDate&quickstart-all.sort-order=desc&awsm.page-quickstart-all=5
