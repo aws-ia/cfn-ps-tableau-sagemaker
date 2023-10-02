@@ -1,0 +1,6 @@
+
+=== Launch into a new VPC
+include::sagemaker-for-tableau-main.adoc[]
+
+=== Launch into existing VPC
+include::sagemaker-for-tableau-workload.adoc[]
